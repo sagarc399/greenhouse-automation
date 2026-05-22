@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    name: Backend — Test & Build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: greenhouse_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run JUnit tests
+        working-directory: backend
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: mvn -B test --no-transfer-progress
+
+      - name: Generate test report on failure
+        if: failure()
+        run: |
+          echo "## ❌ Test Failures" >> $GITHUB_STEP_SUMMARY
+          find backend/target/surefire-reports -name "*.xml" | xargs grep -l "failure\|error" | while read f; do
+            echo "### $(basename $f)" >> $GITHUB_STEP_SUMMARY
+            grep -oP '(?<=message=")[^"]+' "$f" | head -5 | while read msg; do
+              echo "- $msg" >> $GITHUB_STEP_SUMMARY
+            done
+          done
+
+      - name: Build JAR
+        working-directory: backend
+        run: mvn -B package -DskipTests --no-transfer-progress
+
+      - name: Generate Javadoc
+        working-directory: backend
+        run: mvn -B javadoc:javadoc --no-transfer-progress
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: greenhouse-app-jar
+          path: backend/target/*.jar
+
+      - name: Upload Javadoc artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: javadoc
+          path: backend/target/site/apidocs
+
+  frontend:
+    name: Frontend — Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
