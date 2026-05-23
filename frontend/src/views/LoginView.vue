@@ -7,8 +7,16 @@
         <p class="text-gray-500 mt-2 text-sm">{{ $t('auth.login') }}</p>
       </div>
 
+      <!--
+        The href MUST be an absolute URL pointing to the Spring Boot backend.
+        A relative path (e.g. /oauth2/...) would be intercepted by Vite's dev
+        server and served as a frontend route, breaking the OAuth2 handshake.
+        Spring Security sets the session cookie on localhost:8080; the absolute
+        URL ensures the full handshake happens on that origin so the cookie is
+        correctly issued and later sent by the browser on /api/** calls.
+      -->
       <a
-        href="/oauth2/authorization/google"
+        href="http://localhost:8080/oauth2/authorization/google"
         data-testid="google-login-btn"
         class="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors font-medium text-gray-700"
       >

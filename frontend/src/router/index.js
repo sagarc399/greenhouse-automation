@@ -77,17 +77,44 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, _from, next) => {
+/**
+ * Global navigation guard.
+ *
+ * Made async so it can await authStore.init() before making any routing
+ * decision. init() is idempotent — only the very first navigation in a
+ * browser session actually calls the backend; subsequent guards return
+ * immediately from the cached initialized flag.
+ *
+ * Decision tree:
+ *  1. Call init() to ensure session state is known.
+ *  2. Authenticated user → /login: redirect to /dashboard (already logged in).
+ *  3. Public route (requiresAuth: false): allow.
+ *  4. Protected route + not authenticated: redirect to /login.
+ *  5. Role-restricted route + wrong role: redirect to /dashboard.
+ *  6. All other cases: allow.
+ */
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
 
+  // Verify session with backend on the first navigation of the session.
+  await authStore.init()
+
+  // Already logged in — no reason to show the login page.
+  if (to.name === 'Login' && authStore.isAuthenticated) {
+    return next('/dashboard')
+  }
+
+  // Public route — always allow.
   if (to.meta.requiresAuth === false) {
     return next()
   }
 
+  // Protected route — must be authenticated.
   if (!authStore.isAuthenticated) {
     return next('/login')
   }
 
+  // Role-restricted route — must have the required role.
   if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
     return next('/dashboard')
   }

@@ -1,3 +1,4 @@
+com\greenhouse\app\controller\UserController$UserMeResponse.class
 com\greenhouse\app\dto\AutomationRuleDto.class
 com\greenhouse\app\entity\Actuator.class
 com\greenhouse\app\controller\ZoneController.class
@@ -41,6 +42,7 @@ com\greenhouse\app\service\ZoneService.class
 com\greenhouse\app\dto\AlertDto.class
 com\greenhouse\app\repository\SensorReadingRepository.class
 com\greenhouse\app\entity\AutomationRule$1.class
+com\greenhouse\app\controller\UserController.class
 com\greenhouse\app\entity\Sensor$SensorType.class
 com\greenhouse\app\entity\AutomationRule$RuleOperator.class
 com\greenhouse\app\controller\AlertController.class

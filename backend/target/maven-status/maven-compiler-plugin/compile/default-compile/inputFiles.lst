@@ -1,6 +1,7 @@
 C:\dev\Proyecto Invernadero\greenhouse-app\backend\src\main\java\com\greenhouse\app\entity\User.java
 C:\dev\Proyecto Invernadero\greenhouse-app\backend\src\main\java\com\greenhouse\app\dto\AutomationRuleDto.java
 C:\dev\Proyecto Invernadero\greenhouse-app\backend\src\main\java\com\greenhouse\app\entity\Zone.java
+C:\dev\Proyecto Invernadero\greenhouse-app\backend\src\main\java\com\greenhouse\app\controller\UserController.java
 C:\dev\Proyecto Invernadero\greenhouse-app\backend\src\main\java\com\greenhouse\app\security\CustomOAuth2UserService.java
 C:\dev\Proyecto Invernadero\greenhouse-app\backend\src\main\java\com\greenhouse\app\controller\SensorController.java
 C:\dev\Proyecto Invernadero\greenhouse-app\backend\src\main\java\com\greenhouse\app\controller\SensorReadingController.java

@@ -1,13 +1,17 @@
 package com.greenhouse.app.config;
 
 import com.greenhouse.app.security.CustomOAuth2UserService;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,7 +29,12 @@ import java.util.List;
  * </ul>
  *
  * <p>OAuth2 login is configured for Google. After successful authentication the
- * user is redirected to {@code /api/dashboard}.</p>
+ * user is redirected to the Vue frontend URL configured via
+ * {@code app.frontend.base-url} in {@code application.properties}.</p>
+ *
+ * <p>Unauthenticated requests to {@code /api/**} receive HTTP 401 JSON instead of
+ * the default Spring Security redirect to the OAuth2 login page, so that the Vue
+ * frontend can distinguish "not logged in" from a real error response.</p>
  */
 @Configuration
 @EnableWebSecurity
@@ -33,6 +42,13 @@ import java.util.List;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService oAuth2UserService;
+
+    /**
+     * Base URL of the Vue frontend (e.g. {@code http://localhost:5173}).
+     * Injected from {@code app.frontend.base-url} in {@code application.properties}.
+     */
+    @Value("${app.frontend.base-url}")
+    private String frontendBaseUrl;
 
     /**
      * Constructs the configuration with the custom OAuth2 user service.
@@ -56,6 +72,20 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+            // Return HTTP 401 JSON for unauthenticated /api/** calls instead of
+            // redirecting to the OAuth2 login page (which confuses Axios).
+            // For all other paths, fall through to the default OAuth2 redirect.
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    if (request.getRequestURI().startsWith("/api/")) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Authentication required\"}");
+                    } else {
+                        response.sendRedirect("/oauth2/authorization/google");
+                    }
+                })
+            )
             .authorizeHttpRequests(auth -> auth
                 // Public: Swagger UI and API docs
                 .requestMatchers(
@@ -103,14 +133,47 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(ui -> ui.userService(oAuth2UserService))
-                .defaultSuccessUrl("/api/dashboard", true)
+                .successHandler(frontendRedirectSuccessHandler())
+            )
+            // After logout, send the browser back to the Vue login page.
+            .logout(logout -> logout
+                .logoutSuccessUrl(frontendBaseUrl + "/login")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .permitAll()
             );
 
         return http.build();
     }
 
     /**
-     * CORS configuration allowing the Vue frontend (localhost:5173) to call the API.
+     * Authentication success handler that redirects the browser to the Vue frontend
+     * dashboard after a successful OAuth2 login.
+     *
+     * <p>Using {@link SimpleUrlAuthenticationSuccessHandler} with an absolute URL
+     * (e.g. {@code http://localhost:5173/dashboard}) is required because
+     * {@code defaultSuccessUrl} only supports paths relative to the backend server,
+     * which would keep the user on port 8080 instead of returning to the frontend.</p>
+     *
+     * @return a handler that always redirects to {@code {frontendBaseUrl}/dashboard}
+     */
+    @Bean
+    public SimpleUrlAuthenticationSuccessHandler frontendRedirectSuccessHandler() {
+        SimpleUrlAuthenticationSuccessHandler handler = new SimpleUrlAuthenticationSuccessHandler();
+        handler.setDefaultTargetUrl(frontendBaseUrl + "/dashboard");
+        handler.setAlwaysUseDefaultTargetUrl(true);
+        return handler;
+    }
+
+    /**
+     * CORS configuration allowing the Vue frontend ({@code localhost:5173}) to call
+     * the backend API with session cookies.
+     *
+     * <p>{@code allowCredentials = true} is required so the browser sends the Spring
+     * session cookie on cross-origin XHR/fetch calls ({@code axios withCredentials}).</p>
+     *
+     * <p>The configuration is registered on {@code /api/**} (REST endpoints) and
+     * {@code /logout} so that the frontend's logout redirect is also permitted.</p>
      *
      * @return the CORS configuration source
      */
@@ -118,12 +181,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/logout", config);
         return source;
     }
 }
