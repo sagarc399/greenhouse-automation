@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -80,6 +81,15 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+            // Disable Spring's saved-request cache so that a background XHR to
+            // /api/user/me (or any other API call) is never stored as the
+            // post-login redirect target.  Without this, if the session expires
+            // while the Vue app is already open, Spring would save
+            // "GET /api/user/me" and redirect the browser there after the next
+            // successful OAuth2 login — showing raw JSON at localhost:8080.
+            // alwaysUseDefaultTargetUrl(true) on the success handler is a second
+            // layer of protection; NullRequestCache is the first.
+            .requestCache(cache -> cache.requestCache(new NullRequestCache()))
             // Return HTTP 401 JSON for unauthenticated /api/** calls instead of
             // redirecting to the OAuth2 login page (which confuses Axios).
             // For all other paths, fall through to the default OAuth2 redirect.

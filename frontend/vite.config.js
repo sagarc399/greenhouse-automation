@@ -20,7 +20,14 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true
       },
-      '/login': {
+      // Narrow to the OAuth2 callback path only.
+      // A broad '/login' rule would intercept Vue's own /login route when the
+      // dev server falls back to serving it as a static asset request.
+      '/login/oauth2': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      },
+      '/logout': {
         target: 'http://localhost:8080',
         changeOrigin: true
       }
