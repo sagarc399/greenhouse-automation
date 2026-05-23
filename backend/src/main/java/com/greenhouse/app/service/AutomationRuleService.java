@@ -29,10 +29,19 @@ import java.util.List;
 @Transactional
 public class AutomationRuleService {
 
+    /** JPA repository for {@link AutomationRule} persistence operations. */
     private final AutomationRuleRepository ruleRepository;
+
+    /** JPA repository used to look up {@link Zone} entities when applying DTOs. */
     private final ZoneRepository zoneRepository;
+
+    /** JPA repository used to look up {@link com.greenhouse.app.entity.Sensor} entities when applying DTOs. */
     private final SensorRepository sensorRepository;
+
+    /** JPA repository used to persist actuator state changes triggered by rules. */
     private final ActuatorRepository actuatorRepository;
+
+    /** Service used to create {@link com.greenhouse.app.entity.Alert}s when a rule fires. */
     private final AlertService alertService;
 
     /**
@@ -134,12 +143,11 @@ public class AutomationRuleService {
     /**
      * Evaluates all active rules that monitor the given sensor.
      *
-     * <p>For each rule whose condition is satisfied:
+     * <p>For each rule whose condition is satisfied:</p>
      * <ol>
      *   <li>If the rule has a linked actuator, its state is updated.</li>
      *   <li>An alert is generated to notify operators.</li>
      * </ol>
-     * </p>
      *
      * @param sensor      the sensor that produced a new reading
      * @param sensorValue the latest reading value
@@ -165,11 +173,26 @@ public class AutomationRuleService {
 
     // ── private helpers ──────────────────────────────────────────────────────
 
+    /**
+     * Loads an {@link AutomationRule} by primary key or throws if absent.
+     *
+     * @param id the rule primary key
+     * @return the loaded entity
+     * @throws ResourceNotFoundException if no rule exists with the given id
+     */
     private AutomationRule getOrThrow(Long id) {
         return ruleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("AutomationRule", id));
     }
 
+    /**
+     * Maps fields from a {@link AutomationRuleDto} onto an existing or new
+     * {@link AutomationRule} entity, resolving all referenced entities.
+     *
+     * @param entity the entity to mutate (new or loaded from the database)
+     * @param dto    the source data transfer object
+     * @throws ResourceNotFoundException if the referenced zone, sensor, or actuator is not found
+     */
     private void applyDto(AutomationRule entity, AutomationRuleDto dto) {
         Zone zone = zoneRepository.findById(dto.zoneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Zone", dto.zoneId()));
@@ -191,6 +214,12 @@ public class AutomationRuleService {
         }
     }
 
+    /**
+     * Converts an {@link AutomationRule} entity to its {@link AutomationRuleDto} representation.
+     *
+     * @param r the entity to convert
+     * @return an immutable DTO populated from the entity and its lazy-loaded associations
+     */
     private AutomationRuleDto toDto(AutomationRule r) {
         return new AutomationRuleDto(
                 r.getId(),

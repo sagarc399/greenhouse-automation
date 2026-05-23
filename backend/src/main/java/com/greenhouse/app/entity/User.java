@@ -12,12 +12,11 @@ import java.time.LocalDateTime;
 /**
  * Entity representing a system user authenticated via OAuth2 (Google).
  *
- * <p>Users are assigned a {@link UserRole} that controls access to API endpoints:
+ * <p>Users are assigned a {@link UserRole} that controls access to API endpoints:</p>
  * <ul>
  *   <li>{@link UserRole#ADMIN} — full access to all resources.</li>
  *   <li>{@link UserRole#OPERATOR} — read access + sensor readings + alert updates.</li>
  * </ul>
- * </p>
  *
  * @see UserRole
  */

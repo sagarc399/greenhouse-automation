@@ -14,12 +14,11 @@ import java.time.LocalDateTime;
  * triggers an actuator when a condition is met.
  *
  * <p>When a {@link SensorReading} satisfies the rule's condition
- * ({@code sensorValue OPERATOR threshold}), the system can:
+ * ({@code sensorValue OPERATOR threshold}), the system can:</p>
  * <ul>
  *   <li>Change the linked {@link Actuator} state.</li>
  *   <li>Create an {@link Alert} for operator review.</li>
  * </ul>
- * </p>
  *
  * @see Zone
  * @see Sensor
