@@ -13,7 +13,7 @@
           <tr>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.name') }}</th>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.location') }}</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">Zones</th>
+            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.zones') }}</th>
             <th class="text-right px-6 py-3 font-medium text-gray-600">{{ $t('common.actions') }}</th>
           </tr>
         </thead>
@@ -25,10 +25,10 @@
           >
             <td class="px-6 py-4 font-medium">{{ g.name }}</td>
             <td class="px-6 py-4 text-gray-500">{{ g.location || '—' }}</td>
-            <td class="px-6 py-4">{{ g.zoneCount }}</td>
+            <td class="px-6 py-4">{{ g.zoneCount ?? '—' }}</td>
             <td class="px-6 py-4 text-right space-x-2">
               <button class="btn-secondary text-xs" @click="openEdit(g)">{{ $t('common.edit') }}</button>
-              <button class="btn-danger text-xs" @click="confirmDelete(g)">{{ $t('common.delete') }}</button>
+              <button class="btn-danger text-xs"    @click="confirmDelete(g)">{{ $t('common.delete') }}</button>
             </td>
           </tr>
           <tr v-if="!store.items.length">
@@ -71,8 +71,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGreenhouseStore } from '@/stores/greenhouse'
 
+const { t } = useI18n()
 const store = useGreenhouseStore()
 const loading = ref(true)
 const showModal = ref(false)
@@ -106,7 +108,7 @@ async function save() {
 }
 
 async function confirmDelete(item) {
-  if (confirm(`Delete "${item.name}"?`)) {
+  if (confirm(t('greenhouse.deleteConfirm'))) {
     await store.remove(item.id)
   }
 }

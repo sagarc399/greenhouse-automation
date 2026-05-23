@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/services/api'
+import router from '@/router'
 
 /**
  * Pinia store for authentication state.
@@ -82,17 +83,32 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Logs the user out by hitting Spring Security's /logout endpoint.
-   * Spring invalidates the session and redirects the browser to
-   * localhost:5173/login (configured in SecurityConfig).
+   * Logs the user out by POSTing to Spring Security's /logout endpoint,
+   * then navigates to /login via Vue Router.
+   *
+   * Why POST instead of a full-page GET navigation?
+   *   Spring Security 6 only processes the LogoutFilter on POST (the GET
+   *   variant falls through to the dispatcher servlet, which finds no
+   *   handler and returns 500).  Calling the endpoint via Axios keeps the
+   *   session invalidation server-side while letting Vue Router control the
+   *   subsequent navigation — avoiding the race condition where the browser
+   *   lands on the backend redirect URL and the router guard fires
+   *   /api/user/me before the new session context is ready.
+   *
+   * Error handling:
+   *   The catch is intentional — if the session is already expired the POST
+   *   will receive a 401 (or the Axios interceptor will fire), but we still
+   *   want to clear local state and navigate to /login.
    */
-  function logout() {
+  async function logout() {
+    try {
+      await api.post('/logout')
+    } catch {
+      // Session may already be invalid; clear local state regardless.
+    }
     user.value = null
     initialized.value = false
-    // Full-page navigation to the backend's logout endpoint.
-    // Spring Security invalidates the session and redirects back to the
-    // frontend login page (app.frontend.base-url + /login).
-    window.location.href = 'http://localhost:8080/logout'
+    router.push('/login')
   }
 
   return {

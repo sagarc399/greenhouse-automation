@@ -2,9 +2,9 @@
   <div class="p-8">
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold text-gray-900">{{ $t('alert.title') }}</h1>
-      <label class="flex items-center gap-2 text-sm text-gray-600">
-        <input type="checkbox" v-model="pendingOnly" @change="load" />
-        Pending only
+      <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+        <input type="checkbox" v-model="pendingOnly" @change="load" class="rounded" />
+        {{ $t('alert.pendingOnly') }}
       </label>
     </div>
 
@@ -16,7 +16,7 @@
           <tr>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('alert.severity') }}</th>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('alert.message') }}</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">Sensor</th>
+            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('alert.sensor') }}</th>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.status') }}</th>
             <th class="text-right px-6 py-3 font-medium text-gray-600">{{ $t('common.actions') }}</th>
           </tr>

@@ -1,6 +1,7 @@
 package com.greenhouse.app.config;
 
 import com.greenhouse.app.security.CustomOAuth2UserService;
+import com.greenhouse.app.security.CustomOidcUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +43,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService oAuth2UserService;
+    private final CustomOidcUserService  oidcUserService;
 
     /**
      * Base URL of the Vue frontend (e.g. {@code http://localhost:5173}).
@@ -51,12 +53,15 @@ public class SecurityConfig {
     private String frontendBaseUrl;
 
     /**
-     * Constructs the configuration with the custom OAuth2 user service.
+     * Constructs the configuration with both custom user services.
      *
-     * @param oAuth2UserService service that persists authenticated users
+     * @param oAuth2UserService plain OAuth2 user service (non-OIDC providers)
+     * @param oidcUserService   OIDC user service for Google (persists users from ID-token claims)
      */
-    public SecurityConfig(CustomOAuth2UserService oAuth2UserService) {
+    public SecurityConfig(CustomOAuth2UserService oAuth2UserService,
+                          CustomOidcUserService   oidcUserService) {
         this.oAuth2UserService = oAuth2UserService;
+        this.oidcUserService   = oidcUserService;
     }
 
     /**
@@ -132,14 +137,33 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(ui -> ui.userService(oAuth2UserService))
+                .userInfoEndpoint(ui -> ui
+                    // Non-OIDC OAuth2 providers (if any are added later).
+                    .userService(oAuth2UserService)
+                    // Google uses OIDC: wire our custom service so the user is
+                    // always persisted from the ID-token claims before the
+                    // session is created, regardless of whether the userinfo
+                    // endpoint is called.
+                    .oidcUserService(oidcUserService)
+                )
                 .successHandler(frontendRedirectSuccessHandler())
             )
-            // After logout, send the browser back to the Vue login page.
+            // After logout, invalidate the session, delete the cookie, and
+            // redirect the browser (or return 200 for the XHR path) to the
+            // Vue frontend login page.
+            //
+            // logoutUrl — explicit so Spring registers LogoutFilter for
+            //   POST /logout; CSRF is disabled, so the frontend can POST via
+            //   Axios without a CSRF token.
+            // deleteCookies — removes the JSESSIONID from the browser's jar
+            //   so a stale cookie can never replay an old session.
+            // logoutSuccessUrl — absolute URL; the Vue frontend handles the
+            //   router navigation after the POST completes.
             .logout(logout -> logout
+                .logoutUrl("/logout")
                 .logoutSuccessUrl(frontendBaseUrl + "/login")
                 .invalidateHttpSession(true)
-                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll()
             );
 

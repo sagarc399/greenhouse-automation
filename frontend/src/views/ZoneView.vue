@@ -24,7 +24,7 @@
             <td class="px-6 py-4 text-gray-500 truncate max-w-xs">{{ z.description || '—' }}</td>
             <td class="px-6 py-4 text-right space-x-2">
               <button class="btn-secondary text-xs" @click="openEdit(z)">{{ $t('common.edit') }}</button>
-              <button class="btn-danger text-xs" @click="remove(z)">{{ $t('common.delete') }}</button>
+              <button class="btn-danger text-xs"    @click="remove(z)">{{ $t('common.delete') }}</button>
             </td>
           </tr>
           <tr v-if="!zones.length">
@@ -66,9 +66,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { zoneService } from '@/services/zoneService'
 import { greenhouseService } from '@/services/greenhouseService'
 
+const { t } = useI18n()
 const zones = ref([])
 const greenhouses = ref([])
 const loading = ref(true)
@@ -108,7 +110,7 @@ async function save() {
 }
 
 async function remove(item) {
-  if (confirm(`Delete "${item.name}"?`)) {
+  if (confirm(t('zone.deleteConfirm'))) {
     await zoneService.remove(item.id)
     zones.value = zones.value.filter(z => z.id !== item.id)
   }

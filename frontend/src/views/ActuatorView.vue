@@ -13,7 +13,7 @@
           <tr>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.name') }}</th>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.type') }}</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">Zone</th>
+            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.zone') }}</th>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('actuator.state') }}</th>
             <th class="text-right px-6 py-3 font-medium text-gray-600">{{ $t('common.actions') }}</th>
           </tr>
@@ -36,7 +36,7 @@
             </td>
             <td class="px-6 py-4 text-right space-x-2">
               <button class="btn-secondary text-xs" @click="openEdit(a)">{{ $t('common.edit') }}</button>
-              <button class="btn-danger text-xs" @click="remove(a)">{{ $t('common.delete') }}</button>
+              <button class="btn-danger text-xs"    @click="remove(a)">{{ $t('common.delete') }}</button>
             </td>
           </tr>
           <tr v-if="!actuators.length">
@@ -58,11 +58,13 @@
             <div>
               <label class="form-label">{{ $t('common.type') }} *</label>
               <select v-model="form.type" class="form-input" required>
-                <option v-for="t in actuatorTypes" :key="t" :value="t">{{ $t(`actuator.types.${t}`) }}</option>
+                <option v-for="atype in actuatorTypes" :key="atype" :value="atype">
+                  {{ $t(`actuator.types.${atype}`) }}
+                </option>
               </select>
             </div>
             <div>
-              <label class="form-label">Zone *</label>
+              <label class="form-label">{{ $t('common.zone') }} *</label>
               <select v-model="form.zoneId" class="form-input" required>
                 <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
               </select>
@@ -80,9 +82,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { actuatorService } from '@/services/actuatorService'
 import { zoneService } from '@/services/zoneService'
 
+const { t } = useI18n()
 const actuators = ref([])
 const zones = ref([])
 const loading = ref(true)
@@ -128,7 +132,7 @@ async function toggleState(item) {
 }
 
 async function remove(item) {
-  if (confirm(`Delete "${item.name}"?`)) {
+  if (confirm(t('actuator.deleteConfirm'))) {
     await actuatorService.remove(item.id)
     actuators.value = actuators.value.filter(a => a.id !== item.id)
   }

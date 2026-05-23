@@ -39,7 +39,11 @@ const messages = {
       loading: 'Loading...',
       noData: 'No data available',
       createdAt: 'Created At',
-      updatedAt: 'Updated At'
+      updatedAt: 'Updated At',
+      zone: 'Zone',
+      zones: 'Zones',
+      active: 'Active',
+      none: 'None'
     },
     greenhouse: {
       title: 'Greenhouses',
@@ -61,6 +65,7 @@ const messages = {
       zone: 'Zone',
       model: 'Model',
       active: 'Active',
+      deleteConfirm: 'Delete this sensor and all its readings?',
       types: {
         TEMPERATURA: 'Temperature',
         HUMEDAD_AMBIENTAL: 'Air Humidity',
@@ -74,6 +79,7 @@ const messages = {
       new: 'New Actuator',
       edit: 'Edit Actuator',
       state: 'State',
+      deleteConfirm: 'Delete this actuator?',
       types: {
         RIEGO: 'Irrigation',
         VENTILACION: 'Ventilation',
@@ -94,6 +100,10 @@ const messages = {
       threshold: 'Threshold',
       targetActuator: 'Target Actuator',
       targetState: 'Target State',
+      condition: 'Condition',
+      actuator: 'Actuator',
+      active: 'Active',
+      deleteConfirm: 'Delete this automation rule?',
       operators: {
         MAYOR_QUE: 'Greater than',
         MENOR_QUE: 'Less than',
@@ -106,6 +116,8 @@ const messages = {
       message: 'Message',
       triggerValue: 'Trigger Value',
       markAttended: 'Mark as Attended',
+      pendingOnly: 'Pending only',
+      sensor: 'Sensor',
       severities: {
         BAJA: 'Low',
         MEDIA: 'Medium',
@@ -122,7 +134,9 @@ const messages = {
       new: 'New Reading',
       value: 'Value',
       unit: 'Unit',
-      recordedAt: 'Recorded At'
+      recordedAt: 'Recorded At',
+      selectSensor: 'Select a sensor',
+      deleteConfirm: 'Delete this reading?'
     },
     auth: {
       login: 'Sign in',
@@ -169,7 +183,11 @@ const messages = {
       loading: 'Cargando...',
       noData: 'Sin datos disponibles',
       createdAt: 'Creado el',
-      updatedAt: 'Actualizado el'
+      updatedAt: 'Actualizado el',
+      zone: 'Zona',
+      zones: 'Zonas',
+      active: 'Activo',
+      none: 'Ninguno'
     },
     greenhouse: {
       title: 'Invernaderos',
@@ -191,6 +209,7 @@ const messages = {
       zone: 'Zona',
       model: 'Modelo',
       active: 'Activo',
+      deleteConfirm: '¿Eliminar este sensor y todas sus lecturas?',
       types: {
         TEMPERATURA: 'Temperatura',
         HUMEDAD_AMBIENTAL: 'Humedad Ambiental',
@@ -204,6 +223,7 @@ const messages = {
       new: 'Nuevo Actuador',
       edit: 'Editar Actuador',
       state: 'Estado',
+      deleteConfirm: '¿Eliminar este actuador?',
       types: {
         RIEGO: 'Riego',
         VENTILACION: 'Ventilación',
@@ -224,6 +244,10 @@ const messages = {
       threshold: 'Umbral',
       targetActuator: 'Actuador Objetivo',
       targetState: 'Estado Objetivo',
+      condition: 'Condición',
+      actuator: 'Actuador',
+      active: 'Activo',
+      deleteConfirm: '¿Eliminar esta regla de automatización?',
       operators: {
         MAYOR_QUE: 'Mayor que',
         MENOR_QUE: 'Menor que',
@@ -236,6 +260,8 @@ const messages = {
       message: 'Mensaje',
       triggerValue: 'Valor Disparador',
       markAttended: 'Marcar como Atendida',
+      pendingOnly: 'Solo pendientes',
+      sensor: 'Sensor',
       severities: {
         BAJA: 'Baja',
         MEDIA: 'Media',
@@ -252,7 +278,9 @@ const messages = {
       new: 'Nueva Lectura',
       value: 'Valor',
       unit: 'Unidad',
-      recordedAt: 'Registrado el'
+      recordedAt: 'Registrado el',
+      selectSensor: 'Seleccionar sensor',
+      deleteConfirm: '¿Eliminar esta lectura?'
     },
     auth: {
       login: 'Iniciar sesión',

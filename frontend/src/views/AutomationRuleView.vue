@@ -13,9 +13,9 @@
           <tr>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.name') }}</th>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('rule.sensor') }}</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">Condition</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">Actuator</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">Active</th>
+            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('rule.condition') }}</th>
+            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('rule.actuator') }}</th>
+            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('rule.active') }}</th>
             <th class="text-right px-6 py-3 font-medium text-gray-600">{{ $t('common.actions') }}</th>
           </tr>
         </thead>
@@ -26,11 +26,13 @@
             <td class="px-6 py-4">{{ $t(`rule.operators.${r.operator}`) }} {{ r.threshold }}</td>
             <td class="px-6 py-4 text-gray-500">{{ r.actuatorName || '—' }}</td>
             <td class="px-6 py-4">
-              <span :class="r.active ? 'text-green-600' : 'text-red-500'">{{ r.active ? '✓' : '✗' }}</span>
+              <span :class="r.active ? 'text-green-600 font-medium' : 'text-red-500'">
+                {{ r.active ? '✓' : '✗' }}
+              </span>
             </td>
             <td class="px-6 py-4 text-right space-x-2">
               <button class="btn-secondary text-xs" @click="openEdit(r)">{{ $t('common.edit') }}</button>
-              <button class="btn-danger text-xs" @click="remove(r)">{{ $t('common.delete') }}</button>
+              <button class="btn-danger text-xs"    @click="remove(r)">{{ $t('common.delete') }}</button>
             </td>
           </tr>
           <tr v-if="!rules.length">
@@ -51,7 +53,7 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="form-label">Zone *</label>
+                <label class="form-label">{{ $t('common.zone') }} *</label>
                 <select v-model="form.zoneId" class="form-input" required>
                   <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
                 </select>
@@ -79,7 +81,7 @@
               <div>
                 <label class="form-label">{{ $t('rule.targetActuator') }}</label>
                 <select v-model="form.actuatorId" class="form-input">
-                  <option :value="null">None</option>
+                  <option :value="null">{{ $t('common.none') }}</option>
                   <option v-for="a in actuators" :key="a.id" :value="a.id">{{ a.name }}</option>
                 </select>
               </div>
@@ -93,8 +95,8 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <input type="checkbox" v-model="form.active" id="ruleActive" />
-              <label for="ruleActive" class="text-sm text-gray-700">Active</label>
+              <input type="checkbox" v-model="form.active" id="ruleActive" class="rounded" />
+              <label for="ruleActive" class="text-sm text-gray-700">{{ $t('rule.active') }}</label>
             </div>
           </div>
           <div class="flex justify-end gap-3 mt-6">
@@ -109,11 +111,13 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { automationRuleService } from '@/services/automationRuleService'
 import { zoneService } from '@/services/zoneService'
 import { sensorService } from '@/services/sensorService'
 import { actuatorService } from '@/services/actuatorService'
 
+const { t } = useI18n()
 const rules = ref([])
 const zones = ref([])
 const sensors = ref([])
@@ -161,7 +165,7 @@ async function save() {
 }
 
 async function remove(item) {
-  if (confirm(`Delete rule "${item.name}"?`)) {
+  if (confirm(t('rule.deleteConfirm'))) {
     await automationRuleService.remove(item.id)
     rules.value = rules.value.filter(r => r.id !== item.id)
   }

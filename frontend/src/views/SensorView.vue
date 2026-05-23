@@ -13,8 +13,8 @@
           <tr>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.name') }}</th>
             <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.type') }}</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('sensor.zone') }}</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('sensor.active') }}</th>
+            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.zone') }}</th>
+            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.active') }}</th>
             <th class="text-right px-6 py-3 font-medium text-gray-600">{{ $t('common.actions') }}</th>
           </tr>
         </thead>
@@ -24,13 +24,13 @@
             <td class="px-6 py-4">{{ $t(`sensor.types.${s.type}`) }}</td>
             <td class="px-6 py-4 text-gray-500">{{ s.zoneName }}</td>
             <td class="px-6 py-4">
-              <span :class="s.active ? 'text-green-600' : 'text-red-500'">
+              <span :class="s.active ? 'text-green-600 font-medium' : 'text-red-500'">
                 {{ s.active ? '✓' : '✗' }}
               </span>
             </td>
             <td class="px-6 py-4 text-right space-x-2">
               <button class="btn-secondary text-xs" @click="openEdit(s)">{{ $t('common.edit') }}</button>
-              <button class="btn-danger text-xs" @click="remove(s)">{{ $t('common.delete') }}</button>
+              <button class="btn-danger text-xs"    @click="remove(s)">{{ $t('common.delete') }}</button>
             </td>
           </tr>
           <tr v-if="!sensors.length">
@@ -52,11 +52,13 @@
             <div>
               <label class="form-label">{{ $t('common.type') }} *</label>
               <select v-model="form.type" class="form-input" required>
-                <option v-for="t in sensorTypes" :key="t" :value="t">{{ $t(`sensor.types.${t}`) }}</option>
+                <option v-for="stype in sensorTypes" :key="stype" :value="stype">
+                  {{ $t(`sensor.types.${stype}`) }}
+                </option>
               </select>
             </div>
             <div>
-              <label class="form-label">{{ $t('sensor.zone') }} *</label>
+              <label class="form-label">{{ $t('common.zone') }} *</label>
               <select v-model="form.zoneId" class="form-input" required>
                 <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
               </select>
@@ -66,8 +68,8 @@
               <input v-model="form.model" class="form-input" />
             </div>
             <div class="flex items-center gap-2">
-              <input type="checkbox" v-model="form.active" id="active" />
-              <label for="active" class="text-sm text-gray-700">{{ $t('sensor.active') }}</label>
+              <input type="checkbox" v-model="form.active" id="sensorActive" class="rounded" />
+              <label for="sensorActive" class="text-sm text-gray-700">{{ $t('common.active') }}</label>
             </div>
           </div>
           <div class="flex justify-end gap-3 mt-6">
@@ -82,9 +84,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { sensorService } from '@/services/sensorService'
 import { zoneService } from '@/services/zoneService'
 
+const { t } = useI18n()
 const sensors = ref([])
 const zones = ref([])
 const loading = ref(true)
@@ -123,7 +127,7 @@ async function save() {
 }
 
 async function remove(item) {
-  if (confirm(`Delete "${item.name}"?`)) {
+  if (confirm(t('sensor.deleteConfirm'))) {
     await sensorService.remove(item.id)
     sensors.value = sensors.value.filter(s => s.id !== item.id)
   }

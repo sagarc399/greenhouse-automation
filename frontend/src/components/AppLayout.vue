@@ -38,7 +38,7 @@
             {{ currentLocale === 'es' ? 'EN' : 'ES' }}
           </button>
           <button
-            @click="authStore.logout"
+            @click="authStore.logout()"
             class="text-xs text-greenhouse-300 hover:text-white transition-colors"
           >
             {{ $t('nav.logout') }}
