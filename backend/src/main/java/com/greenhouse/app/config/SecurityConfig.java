@@ -104,38 +104,18 @@ public class SecurityConfig {
                 // Public: OAuth2 login
                 .requestMatchers("/login/**", "/oauth2/**").permitAll()
 
-                // ADMIN: write operations on most resources
-                .requestMatchers(HttpMethod.POST, "/api/greenhouses/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/greenhouses/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/greenhouses/**").hasRole("ADMIN")
-
-                .requestMatchers(HttpMethod.POST, "/api/zones/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/zones/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/zones/**").hasRole("ADMIN")
-
-                .requestMatchers(HttpMethod.POST, "/api/sensors/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/sensors/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/sensors/**").hasRole("ADMIN")
-
-                .requestMatchers(HttpMethod.POST, "/api/actuators/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/actuators/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/actuators/**").hasRole("ADMIN")
-
-                .requestMatchers(HttpMethod.POST, "/api/automation-rules/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/automation-rules/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/automation-rules/**").hasRole("ADMIN")
-
-                // OPERATOR: can POST sensor readings
+                // OPERATOR write exceptions — must come before the ADMIN-only catch-all rules
                 .requestMatchers(HttpMethod.POST, "/api/sensor-readings/**").hasAnyRole("ADMIN", "OPERATOR")
-                .requestMatchers(HttpMethod.DELETE, "/api/sensor-readings/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,  "/api/alerts/**").hasAnyRole("ADMIN", "OPERATOR")
 
-                // OPERATOR: can update alert status
-                .requestMatchers(HttpMethod.PUT, "/api/alerts/**").hasAnyRole("ADMIN", "OPERATOR")
-                .requestMatchers(HttpMethod.POST, "/api/alerts/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/alerts/**").hasRole("ADMIN")
+                // ADMIN: all mutating operations on any API resource
+                .requestMatchers(HttpMethod.POST,   "/api/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/api/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH,  "/api/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
 
-                // All authenticated users: GET on any resource
-                .requestMatchers(HttpMethod.GET, "/api/**").authenticated()
+                // ADMIN + OPERATOR: read access to all resources
+                .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "OPERATOR")
 
                 .anyRequest().authenticated()
             )

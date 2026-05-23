@@ -2,11 +2,17 @@ package com.greenhouse.app.security;
 
 import com.greenhouse.app.entity.User;
 import com.greenhouse.app.repository.UserRepository;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Custom OIDC user service that persists Google-authenticated users on every login.
@@ -42,18 +48,18 @@ public class CustomOidcUserService extends OidcUserService {
     }
 
     /**
-     * Loads the OIDC user from the provider and upserts the local user record.
+     * Loads the OIDC user from the provider, upserts the local user record, and
+     * returns a {@link DefaultOidcUser} enriched with the application role authority.
      *
      * <p>The parent implementation handles token validation and ID-token parsing.
      * This override reads {@code email}, {@code name}, and {@code picture} from the
      * resolved {@link OidcUser} claims and persists or updates the matching
-     * {@link User} entity.  The original {@link OidcUser} is returned unchanged so
-     * that Spring Security stores it as the session principal — downstream code in
-     * {@link com.greenhouse.app.controller.UserController} resolves the role via the
-     * DB using the same email.</p>
+     * {@link User} entity.  The returned principal carries the standard OIDC authorities
+     * plus a {@code ROLE_ADMIN} or {@code ROLE_OPERATOR} authority so that Spring
+     * Security {@code hasRole()} checks pass throughout the filter chain.</p>
      *
      * @param userRequest the OIDC user request containing the ID token and client info
-     * @return the {@link OidcUser} produced by the parent service
+     * @return a {@link DefaultOidcUser} with the application role authority added
      * @throws OAuth2AuthenticationException if the provider response is invalid
      */
     @Override
@@ -65,6 +71,8 @@ public class CustomOidcUserService extends OidcUserService {
         String picture    = oidcUser.getAttribute("picture");
         String provider   = userRequest.getClientRegistration().getRegistrationId();
         String providerId = oidcUser.getSubject();
+
+        User.UserRole appRole = User.UserRole.OPERATOR;
 
         if (email != null) {
             User user = userRepository.findByEmail(email)
@@ -79,9 +87,17 @@ public class CustomOidcUserService extends OidcUserService {
 
             user.setName(name);
             user.setPictureUrl(picture);
-            userRepository.save(user);
+            User saved = userRepository.save(user);
+            if (saved.getRole() != null) {
+                appRole = saved.getRole();
+            }
         }
 
-        return oidcUser;
+        // Rebuild the authority set to include the application role so that
+        // Spring Security hasRole("ADMIN") / hasRole("OPERATOR") checks pass.
+        Set<GrantedAuthority> authorities = new LinkedHashSet<>(oidcUser.getAuthorities());
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + appRole.name()));
+
+        return new DefaultOidcUser(authorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
     }
 }
