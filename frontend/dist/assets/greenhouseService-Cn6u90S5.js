@@ -1,1 +1,0 @@
-import{a as e}from"./index-HxGc55KC.js";const n="/api/greenhouses",c={async getAll(){const{data:a}=await e.get(n);return a},async getById(a){const{data:t}=await e.get(`${n}/${a}`);return t},async create(a){const{data:t}=await e.post(n,a);return t},async update(a,t){const{data:s}=await e.put(`${n}/${a}`,t);return s},async remove(a){await e.delete(`${n}/${a}`)}};export{c as g};
