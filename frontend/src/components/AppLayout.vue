@@ -1,56 +1,92 @@
 <template>
-  <div class="min-h-screen flex bg-gray-50">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-greenhouse-800 text-white flex flex-col">
-      <div class="p-6 border-b border-greenhouse-700">
-        <h1 class="text-xl font-bold">🌱 Greenhouse</h1>
-        <p class="text-greenhouse-300 text-xs mt-1">Management System</p>
+  <div class="min-h-screen bg-greenhouse-50">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────── -->
+    <aside
+      class="fixed inset-y-0 left-0 w-[280px] flex flex-col z-30
+             bg-gradient-to-b from-greenhouse-900 via-greenhouse-900 to-greenhouse-800
+             shadow-[4px_0_24px_rgba(0,0,0,0.15)]"
+    >
+      <!-- Logo -->
+      <div class="px-6 py-5 border-b border-white/10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-greenhouse-400 rounded-xl flex items-center justify-center text-xl shadow-sm flex-shrink-0">
+            🌱
+          </div>
+          <div>
+            <p class="text-white text-sm font-bold leading-tight tracking-wide">Greenhouse</p>
+            <p class="text-greenhouse-300 text-[10px] uppercase tracking-widest mt-0.5">Management System</p>
+          </div>
+        </div>
       </div>
 
-      <nav class="flex-1 p-4 space-y-1">
+      <!-- Navigation -->
+      <nav class="flex-1 py-5 px-3 space-y-0.5 overflow-y-auto">
         <RouterLink
           v-for="link in visibleLinks"
           :key="link.to"
           :to="link.to"
-          class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-greenhouse-100 hover:bg-greenhouse-700 transition-colors"
-          active-class="bg-greenhouse-700 text-white font-medium"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg
+                 text-greenhouse-200 text-sm font-medium
+                 hover:bg-white/10 hover:text-white
+                 border-l-[3px] border-transparent
+                 transition-all duration-150 group"
+          active-class="!bg-white/15 !text-white !border-greenhouse-400"
         >
-          <span class="text-lg">{{ link.icon }}</span>
-          <span class="text-sm">{{ $t(link.label) }}</span>
+          <span class="text-base w-5 text-center leading-none">{{ link.icon }}</span>
+          <span>{{ $t(link.label) }}</span>
         </RouterLink>
       </nav>
 
-      <div class="p-4 border-t border-greenhouse-700">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-8 h-8 rounded-full bg-greenhouse-600 flex items-center justify-center text-sm font-bold">
+      <!-- User area -->
+      <div class="p-4 border-t border-white/10">
+        <!-- User card -->
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-white/8 mb-3">
+          <div
+            class="w-9 h-9 rounded-full bg-greenhouse-400 flex items-center justify-center
+                   text-sm font-bold text-greenhouse-900 flex-shrink-0 shadow-sm"
+          >
             {{ userInitial }}
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium truncate">{{ authStore.user?.name }}</p>
-            <p class="text-xs text-greenhouse-300">{{ authStore.user?.role }}</p>
+            <p class="text-white text-sm font-semibold truncate leading-tight">
+              {{ authStore.user?.name }}
+            </p>
+            <p class="text-greenhouse-300 text-xs mt-0.5">{{ authStore.user?.role }}</p>
           </div>
         </div>
-        <div class="flex items-center justify-between">
+
+        <!-- Actions row -->
+        <div class="flex items-center justify-between px-1">
           <button
             @click="toggleLocale"
-            class="text-xs text-greenhouse-300 hover:text-white transition-colors"
+            class="text-xs text-greenhouse-400 hover:text-white
+                   transition-colors duration-150 font-medium px-2 py-1 rounded hover:bg-white/10"
           >
-            {{ currentLocale === 'es' ? 'EN' : 'ES' }}
+            {{ currentLocale === 'es' ? '🇺🇸 EN' : '🇪🇸 ES' }}
           </button>
           <button
             @click="authStore.logout()"
-            class="text-xs text-greenhouse-300 hover:text-white transition-colors"
+            class="flex items-center gap-1.5 text-xs text-greenhouse-400 hover:text-white
+                   transition-colors duration-150 px-2 py-1 rounded hover:bg-white/10"
           >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
             {{ $t('nav.logout') }}
           </button>
         </div>
       </div>
     </aside>
 
-    <!-- Main content -->
-    <main class="flex-1 overflow-auto">
-      <router-view />
-    </main>
+    <!-- ── Main content ────────────────────────────────────────── -->
+    <div class="pl-[280px] min-h-screen">
+      <main class="min-h-screen">
+        <router-view />
+      </main>
+    </div>
+
   </div>
 </template>
 
@@ -75,14 +111,14 @@ const userInitial = computed(() =>
 )
 
 const allLinks = [
-  { to: '/dashboard',        icon: '📊', label: 'nav.dashboard', roles: ['ADMIN', 'OPERATOR'] },
+  { to: '/dashboard',        icon: '📊', label: 'nav.dashboard',  roles: ['ADMIN', 'OPERATOR'] },
   { to: '/greenhouses',      icon: '🏠', label: 'nav.greenhouses', roles: ['ADMIN'] },
-  { to: '/zones',            icon: '🗂️', label: 'nav.zones', roles: ['ADMIN'] },
-  { to: '/sensors',          icon: '📡', label: 'nav.sensors', roles: ['ADMIN'] },
-  { to: '/actuators',        icon: '⚙️', label: 'nav.actuators', roles: ['ADMIN'] },
-  { to: '/automation-rules', icon: '🤖', label: 'nav.rules', roles: ['ADMIN'] },
-  { to: '/alerts',           icon: '🔔', label: 'nav.alerts', roles: ['ADMIN', 'OPERATOR'] },
-  { to: '/sensor-readings',  icon: '📈', label: 'nav.readings', roles: ['ADMIN', 'OPERATOR'] }
+  { to: '/zones',            icon: '🗂️', label: 'nav.zones',       roles: ['ADMIN'] },
+  { to: '/sensors',          icon: '📡', label: 'nav.sensors',     roles: ['ADMIN'] },
+  { to: '/actuators',        icon: '⚙️', label: 'nav.actuators',   roles: ['ADMIN'] },
+  { to: '/automation-rules', icon: '🤖', label: 'nav.rules',       roles: ['ADMIN'] },
+  { to: '/alerts',           icon: '🔔', label: 'nav.alerts',      roles: ['ADMIN', 'OPERATOR'] },
+  { to: '/sensor-readings',  icon: '📈', label: 'nav.readings',    roles: ['ADMIN', 'OPERATOR'] }
 ]
 
 const visibleLinks = computed(() =>

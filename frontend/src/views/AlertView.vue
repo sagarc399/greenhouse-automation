@@ -1,56 +1,102 @@
 <template>
-  <div class="p-8">
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">{{ $t('alert.title') }}</h1>
-      <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-        <input type="checkbox" v-model="pendingOnly" @change="load" class="rounded" />
-        {{ $t('alert.pendingOnly') }}
+  <div class="p-8 max-w-7xl">
+
+    <!-- ── Page header ─────────────────────────────────────────── -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-[#1A1A1A]">{{ $t('alert.title') }}</h1>
+        <p class="text-sm text-[#555555] mt-0.5">{{ $t('alert.severity') }} · {{ $t('common.status') }}</p>
+      </div>
+      <!-- Pending-only toggle -->
+      <label
+        class="flex items-center gap-2.5 cursor-pointer select-none
+               bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm
+               hover:border-greenhouse-300 transition-colors"
+      >
+        <span class="relative inline-flex items-center">
+          <input type="checkbox" v-model="pendingOnly" @change="load" class="sr-only peer" />
+          <div class="w-9 h-5 bg-gray-200 rounded-full peer
+                      peer-checked:bg-greenhouse-600 transition-colors duration-200"></div>
+          <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow
+                      transition-transform duration-200 peer-checked:translate-x-4"></div>
+        </span>
+        <span class="text-sm font-medium text-[#555555]">{{ $t('alert.pendingOnly') }}</span>
       </label>
     </div>
 
-    <div v-if="loading" class="text-gray-500">{{ $t('common.loading') }}</div>
+    <!-- ── Loading ─────────────────────────────────────────────── -->
+    <div v-if="loading" class="flex items-center justify-center py-24">
+      <div class="w-10 h-10 border-4 border-greenhouse-200 border-t-greenhouse-600 rounded-full animate-spin"></div>
+    </div>
 
-    <div v-else class="card overflow-hidden p-0">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 border-b border-gray-200">
+    <!-- ── Table ───────────────────────────────────────────────── -->
+    <div v-else class="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
+      <table class="data-table">
+        <thead>
           <tr>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('alert.severity') }}</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('alert.message') }}</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('alert.sensor') }}</th>
-            <th class="text-left px-6 py-3 font-medium text-gray-600">{{ $t('common.status') }}</th>
-            <th class="text-right px-6 py-3 font-medium text-gray-600">{{ $t('common.actions') }}</th>
+            <th>{{ $t('alert.severity') }}</th>
+            <th>{{ $t('alert.message') }}</th>
+            <th>{{ $t('alert.sensor') }}</th>
+            <th>{{ $t('alert.triggerValue') }}</th>
+            <th>{{ $t('common.status') }}</th>
+            <th>{{ $t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="a in alerts" :key="a.id" class="border-b border-gray-100 hover:bg-gray-50">
-            <td class="px-6 py-4">
+          <tr
+            v-for="a in alerts"
+            :key="a.id"
+            :class="a.severity === 'CRITICA' && a.status === 'PENDIENTE' ? 'bg-red-50/40' : ''"
+          >
+            <td>
               <span :class="`badge-${a.severity.toLowerCase()}`">
                 {{ $t(`alert.severities.${a.severity}`) }}
               </span>
             </td>
-            <td class="px-6 py-4 max-w-sm truncate">{{ a.message }}</td>
-            <td class="px-6 py-4 text-gray-500">{{ a.sensorName }}</td>
-            <td class="px-6 py-4">
+            <td class="text-[#1A1A1A] max-w-xs">
+              <p class="truncate" :title="a.message">{{ a.message }}</p>
+            </td>
+            <td class="text-[#555555]">{{ a.sensorName }}</td>
+            <td>
+              <span v-if="a.triggerValue != null"
+                    class="font-mono text-xs bg-gray-50 border border-gray-200 rounded px-2 py-0.5">
+                {{ a.triggerValue }}
+              </span>
+              <span v-else class="text-gray-400">—</span>
+            </td>
+            <td>
               <span :class="`badge-${a.status.toLowerCase()}`">
                 {{ $t(`alert.statuses.${a.status}`) }}
               </span>
             </td>
-            <td class="px-6 py-4 text-right">
-              <button
-                v-if="a.status === 'PENDIENTE'"
-                class="btn-secondary text-xs"
-                @click="attend(a)"
-              >
-                {{ $t('alert.markAttended') }}
-              </button>
+            <td>
+              <div class="flex items-center justify-end">
+                <button
+                  v-if="a.status === 'PENDIENTE'"
+                  class="btn-secondary text-xs py-1.5 px-3
+                         border-greenhouse-300 text-greenhouse-800 hover:bg-greenhouse-50"
+                  @click="attend(a)"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  {{ $t('alert.markAttended') }}
+                </button>
+              </div>
             </td>
           </tr>
           <tr v-if="!alerts.length">
-            <td colspan="5" class="px-6 py-8 text-center text-gray-400">{{ $t('common.noData') }}</td>
+            <td colspan="6" class="!py-16 text-center">
+              <svg class="w-14 h-14 mx-auto text-greenhouse-200 mb-3" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+              </svg>
+              <p class="text-sm text-gray-400 font-medium">{{ $t('common.noData') }}</p>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
+
   </div>
 </template>
 

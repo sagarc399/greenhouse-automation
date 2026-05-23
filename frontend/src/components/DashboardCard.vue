@@ -1,20 +1,38 @@
 <template>
-  <div class="card flex items-center gap-4">
-    <div :class="['w-12 h-12 rounded-xl flex items-center justify-center text-2xl', color]">
-      {{ icon }}
-    </div>
-    <div>
-      <p class="text-2xl font-bold text-gray-900">{{ value }}</p>
-      <p class="text-sm text-gray-500">{{ label }}</p>
+  <div
+    class="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden
+           hover:shadow-card-hover transition-shadow duration-200"
+  >
+    <!-- Colored top stripe -->
+    <div class="h-1" :style="{ backgroundColor: borderColor }"></div>
+
+    <div class="p-6">
+      <div class="flex items-start justify-between gap-3">
+        <!-- Value + label -->
+        <div class="min-w-0">
+          <p class="text-3xl font-bold text-[#1A1A1A] leading-tight tabular-nums">
+            {{ value ?? '—' }}
+          </p>
+          <p class="text-sm text-[#555555] mt-1 leading-snug">{{ label }}</p>
+        </div>
+        <!-- Icon bubble -->
+        <div
+          class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+          :style="{ backgroundColor: iconBg }"
+        >
+          {{ icon }}
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 defineProps({
-  label: String,
-  value: [Number, String],
-  icon: String,
-  color: { type: String, default: 'bg-gray-100 text-gray-600' }
+  label:       { type: String,           default: '' },
+  value:       { type: [Number, String], default: null },
+  icon:        { type: String,           default: '📊' },
+  borderColor: { type: String,           default: '#66BB6A' },
+  iconBg:      { type: String,           default: '#F1F8E9' }
 })
 </script>
