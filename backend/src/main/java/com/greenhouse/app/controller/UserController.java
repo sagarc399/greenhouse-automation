@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "User", description = "Current authenticated user profile")
 public class UserController {
 
+    /** JPA repository used to look up the persisted role for OIDC principals. */
     private final UserRepository userRepository;
 
     /**

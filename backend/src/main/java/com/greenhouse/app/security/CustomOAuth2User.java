@@ -18,7 +18,10 @@ import java.util.Map;
  */
 public class CustomOAuth2User implements OAuth2User {
 
+    /** Underlying Spring Security OAuth2 principal being decorated. */
     private final OAuth2User delegate;
+
+    /** Local application user entity loaded from or persisted to the database. */
     private final User user;
 
     /**

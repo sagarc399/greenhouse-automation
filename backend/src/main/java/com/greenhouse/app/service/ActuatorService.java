@@ -18,7 +18,10 @@ import java.util.List;
 @Transactional
 public class ActuatorService {
 
+    /** JPA repository for actuator persistence operations. */
     private final ActuatorRepository actuatorRepository;
+
+    /** JPA repository used to resolve parent zone references. */
     private final ZoneRepository zoneRepository;
 
     /**

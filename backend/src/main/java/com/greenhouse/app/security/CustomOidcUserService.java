@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
  *
  * <p>When Google issues an ID token with the {@code openid}, {@code profile}, and
  * {@code email} scopes, Spring Security uses {@link OidcUserService} — not the
- * {@link DefaultOAuth2UserService}-based {@link CustomOAuth2UserService} — as the
+ * {@code DefaultOAuth2UserService}-based {@link CustomOAuth2UserService} — as the
  * primary handler.  If the token already contains all required claims, Spring may
  * skip the userinfo endpoint entirely, meaning {@link CustomOAuth2UserService} is
  * never called as a delegate and the user is never upserted in the database.</p>
@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomOidcUserService extends OidcUserService {
 
+    /** JPA repository for persisting and looking up authenticated user records. */
     private final UserRepository userRepository;
 
     /**

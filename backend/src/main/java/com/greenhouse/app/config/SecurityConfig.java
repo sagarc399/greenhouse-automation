@@ -42,7 +42,10 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    /** Custom OAuth2 user service for non-OIDC provider logins. */
     private final CustomOAuth2UserService oAuth2UserService;
+
+    /** Custom OIDC user service for Google logins; persists users from ID-token claims. */
     private final CustomOidcUserService  oidcUserService;
 
     /**

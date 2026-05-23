@@ -23,7 +23,10 @@ import java.util.List;
 @Transactional
 public class AlertService {
 
+    /** JPA repository for alert persistence operations. */
     private final AlertRepository alertRepository;
+
+    /** Service used to load {@link com.greenhouse.app.entity.Sensor} entities by ID. */
     private final SensorService sensorService;
 
     /**

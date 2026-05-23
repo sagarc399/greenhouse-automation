@@ -19,6 +19,7 @@ import java.util.List;
 @Transactional
 public class GreenhouseService {
 
+    /** JPA repository for greenhouse persistence operations. */
     private final GreenhouseRepository repository;
 
     /**

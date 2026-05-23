@@ -20,11 +20,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class DashboardService {
 
+    /** JPA repository providing greenhouse counts. */
     private final GreenhouseRepository greenhouseRepository;
+
+    /** JPA repository providing zone counts. */
     private final ZoneRepository zoneRepository;
+
+    /** JPA repository providing sensor counts and active-sensor queries. */
     private final SensorRepository sensorRepository;
+
+    /** JPA repository providing actuator state queries. */
     private final ActuatorRepository actuatorRepository;
+
+    /** JPA repository providing automation rule counts. */
     private final AutomationRuleRepository ruleRepository;
+
+    /** JPA repository providing alert counts and severity queries. */
     private final AlertRepository alertRepository;
 
     /**

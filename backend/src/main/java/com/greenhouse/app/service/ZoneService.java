@@ -18,7 +18,10 @@ import java.util.List;
 @Transactional
 public class ZoneService {
 
+    /** JPA repository for zone persistence operations. */
     private final ZoneRepository zoneRepository;
+
+    /** JPA repository used to resolve parent greenhouse references. */
     private final GreenhouseRepository greenhouseRepository;
 
     /**

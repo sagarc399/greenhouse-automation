@@ -18,7 +18,10 @@ import java.util.List;
 @Transactional
 public class SensorService {
 
+    /** JPA repository for sensor persistence operations. */
     private final SensorRepository sensorRepository;
+
+    /** JPA repository used to resolve parent zone references. */
     private final ZoneRepository zoneRepository;
 
     /**

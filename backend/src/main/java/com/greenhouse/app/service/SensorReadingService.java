@@ -20,8 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class SensorReadingService {
 
+    /** JPA repository for sensor reading persistence operations. */
     private final SensorReadingRepository readingRepository;
+
+    /** Service used to load {@link com.greenhouse.app.entity.Sensor} entities by ID. */
     private final SensorService sensorService;
+
+    /** Service used to evaluate automation rules after a reading is saved. */
     private final AutomationRuleService ruleService;
 
     /**
