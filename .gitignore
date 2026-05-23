@@ -35,3 +35,6 @@ frontend/.vite/
 *.env.local
 **/.env.local
 backend/.env.local
+
+# Local dev launcher scripts (contain credentials)
+run-backend.ps1
