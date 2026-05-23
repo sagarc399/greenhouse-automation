@@ -71,12 +71,14 @@
         <!-- Google button -->
         <!--
           The href MUST be an absolute URL pointing to the Spring Boot backend.
-          Spring Security sets the session cookie on localhost:8080; using an
+          Spring Security sets the session cookie on the backend origin; using an
           absolute URL ensures the full OAuth2 handshake happens on that origin
           so the cookie is correctly issued for subsequent /api/** calls.
+          The base URL is read from VITE_API_BASE_URL (set in .env.production)
+          so the same build works in both development and production.
         -->
         <a
-          href="http://localhost:8080/oauth2/authorization/google"
+          :href="`${apiBase}/oauth2/authorization/google`"
           data-testid="google-login-btn"
           class="flex items-center justify-center gap-3 w-full
                  border-2 border-gray-200 hover:border-greenhouse-400 hover:bg-greenhouse-50
@@ -112,6 +114,8 @@
 import { useI18n } from 'vue-i18n'
 
 const { locale } = useI18n()
+
+const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 function toggleLocale() {
   const next = locale.value === 'es' ? 'en' : 'es'

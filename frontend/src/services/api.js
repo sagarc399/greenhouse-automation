@@ -3,23 +3,30 @@ import axios from 'axios'
 /**
  * Axios instance pre-configured for the Greenhouse API.
  *
- * baseURL points directly at the Spring Boot backend (port 8080) so the
- * browser sends the JSESSIONID session cookie itself on every request.
+ * baseURL is resolved from the VITE_API_BASE_URL environment variable so the
+ * same build artifact works in every environment:
+ *   - Development : VITE_API_BASE_URL is unset → falls back to localhost:8080
+ *   - Production  : VITE_API_BASE_URL=https://greenhouse-automation-production.up.railway.app
+ *
+ * The browser sends the JSESSIONID session cookie on every request because
+ * the URL is always the exact origin that issued the cookie.
  *
  * WHY NOT baseURL '/' + Vite proxy?
  *   The Vite proxy makes a server-to-server (Node.js → Spring) call.
  *   The browser's cookie jar is never consulted for that server-side leg,
- *   so the JSESSIONID set by localhost:8080 during the OAuth2 handshake is
+ *   so the JSESSIONID set by the backend during the OAuth2 handshake is
  *   never forwarded — Spring gets an anonymous request and returns 401.
  *
  * WHY withCredentials: true?
  *   Required so the browser attaches the session cookie on cross-origin
- *   requests from localhost:5173 → localhost:8080.
- *   Spring's CORS config must match: allowedOrigins("http://localhost:5173")
- *   + allowCredentials(true).
+ *   requests (localhost:5173 → localhost:8080 in dev, or frontend domain →
+ *   Railway domain in production).  Spring's CORS config must match:
+ *   allowedOrigins(frontendOrigin) + allowCredentials(true).
  */
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+
 const api = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
