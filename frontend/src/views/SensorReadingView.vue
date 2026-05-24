@@ -135,7 +135,7 @@
             </div>
             <div>
               <label class="form-label">{{ $t('reading.unit') }}</label>
-              <input v-model="form.unit" class="form-input" placeholder="°C, %, lux, pH…" />
+              <input v-model="form.unit" class="form-input bg-greenhouse-50 cursor-not-allowed" readonly />
             </div>
             <div class="flex justify-end gap-3 pt-2">
               <button type="button" class="btn-secondary" @click="showModal = false">{{ $t('common.cancel') }}</button>
@@ -214,8 +214,18 @@ async function fetchPage(page) {
 
 async function goToPage(page) { await fetchPage(page) }
 
+const UNIT_MAP = {
+  TEMPERATURA: '°C',
+  HUMEDAD_AMBIENTAL: '%',
+  HUMEDAD_SUELO: '%',
+  LUZ: 'lux',
+  PH: 'pH'
+}
+
 function openCreate() {
-  form.value = { value: 0, unit: '' }
+  const sensor = sensors.value.find(s => s.id === selectedSensorId.value)
+  const unit = sensor?.type ? (UNIT_MAP[sensor.type] || '') : ''
+  form.value = { value: 0, unit }
   showModal.value = true
 }
 
