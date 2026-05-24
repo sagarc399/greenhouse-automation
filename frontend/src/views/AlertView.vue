@@ -53,7 +53,12 @@
                 {{ $t(`alert.severities.${a.severity}`) }}
               </span>
             </td>
-            <td class="text-[#1A1A1A] max-w-xs">
+            <td :class="['max-w-xs', {
+              'text-red-700 font-semibold': a.severity === 'CRITICA',
+              'text-orange-600 font-medium': a.severity === 'ALTA',
+              'text-yellow-700': a.severity === 'MEDIA',
+              'text-[#1A1A1A]': a.severity === 'BAJA'
+            }]">
               <p class="truncate" :title="a.message">{{ a.message }}</p>
             </td>
             <td class="text-[#555555]">{{ a.sensorName }}</td>
