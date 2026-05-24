@@ -83,7 +83,7 @@ public class SensorReadingService {
         entity.setSensor(sensor);
         entity.setValue(dto.value());
         entity.setUnit(dto.unit());
-        entity.setRecordedAt(dto.recordedAt());
+        entity.setRecordedAt(dto.recordedAt() != null ? dto.recordedAt() : java.time.LocalDateTime.now());
         SensorReading saved = readingRepository.save(entity);
         ruleService.evaluateRulesForSensor(sensor, dto.value());
         return toDto(saved);
