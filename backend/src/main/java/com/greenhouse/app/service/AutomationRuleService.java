@@ -166,7 +166,18 @@ public class AutomationRuleService {
                         rule.getName(), sensor.getName(), sensorValue,
                         rule.getOperator().name(), rule.getThreshold()
                 );
-                alertService.createFromRule(message, Alert.AlertSeverity.MEDIA, sensorValue, sensor, rule);
+                double deviation = Math.abs(sensorValue - rule.getThreshold());
+                Alert.AlertSeverity severity;
+                if (deviation > 20) {
+                    severity = Alert.AlertSeverity.CRITICA;
+                } else if (deviation > 10) {
+                    severity = Alert.AlertSeverity.ALTA;
+                } else if (deviation > 5) {
+                    severity = Alert.AlertSeverity.MEDIA;
+                } else {
+                    severity = Alert.AlertSeverity.BAJA;
+                }
+                alertService.createFromRule(message, severity, sensorValue, sensor, rule);
             }
         }
     }
