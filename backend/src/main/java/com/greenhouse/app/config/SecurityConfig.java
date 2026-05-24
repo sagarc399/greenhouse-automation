@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import com.greenhouse.app.security.HttpCookieOAuth2AuthorizationRequestRepository;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.web.cors.CorsConfiguration;
@@ -130,6 +131,17 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
+                // Store the OAuth2 authorization request in a cookie instead of
+                // the HTTP session.  In production, the frontend (Vercel) and
+                // backend (Railway) are on different domains, so the session
+                // cookie cannot be shared across the Google redirect round-trip.
+                // Using a cookie-based repository keeps the OAuth2 state (the
+                // `state` parameter and PKCE verifier) in the browser's own
+                // cookie jar, which survives the cross-origin callback from
+                // accounts.google.com → Railway without relying on the session.
+                .authorizationEndpoint(auth -> auth
+                    .authorizationRequestRepository(cookieAuthorizationRequestRepository())
+                )
                 .userInfoEndpoint(ui -> ui
                     // Non-OIDC OAuth2 providers (if any are added later).
                     .userService(oAuth2UserService)
@@ -180,6 +192,26 @@ public class SecurityConfig {
         handler.setDefaultTargetUrl(frontendBaseUrl + "/dashboard");
         handler.setAlwaysUseDefaultTargetUrl(true);
         return handler;
+    }
+
+    /**
+     * Stores the OAuth2 authorization request (including the {@code state} parameter
+     * used to prevent CSRF) in a short-lived cookie instead of the HTTP session.
+     *
+     * <p>The default session-based repository breaks in production when the frontend
+     * and backend are on different domains: the browser will not send the backend's
+     * session cookie during the Google callback because of cross-origin cookie
+     * restrictions, so Spring cannot look up the original authorization request and
+     * throws {@code authorization_request_not_found}.</p>
+     *
+     * <p>A cookie-based repository is immune to this because the cookie travels with
+     * the browser regardless of which domain initiated the request.</p>
+     *
+     * @return a cookie-backed OAuth2 authorization request repository
+     */
+    @Bean
+    public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
+        return new HttpCookieOAuth2AuthorizationRequestRepository();
     }
 
     /**
