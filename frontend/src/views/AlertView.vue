@@ -49,7 +49,13 @@
             :class="a.severity === 'CRITICA' && a.status === 'PENDIENTE' ? 'bg-red-50/40' : ''"
           >
             <td>
-              <span :class="`badge-${a.severity.toLowerCase()}`">
+              <span :class="{
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold': true,
+                'bg-red-100 text-red-700 ring-1 ring-red-400': a.severity === 'CRITICA',
+                'bg-orange-100 text-orange-700 ring-1 ring-orange-400': a.severity === 'ALTA',
+                'bg-blue-100 text-blue-700 ring-1 ring-blue-400': a.severity === 'MEDIA',
+                'bg-gray-100 text-gray-600 ring-1 ring-gray-300': a.severity === 'BAJA'
+              }">
                 {{ $t(`alert.severities.${a.severity}`) }}
               </span>
             </td>
