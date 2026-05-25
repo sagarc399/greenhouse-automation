@@ -78,10 +78,10 @@
   }
   .badge-pendiente { @apply badge bg-amber-100   text-amber-700;       }
   .badge-atendida  { @apply badge bg-green-100   text-green-700;       }
-  .badge-critica   { @apply badge bg-red-100     text-red-700    border border-red-400;    }
-  .badge-alta      { @apply badge bg-orange-100  text-orange-700 border border-orange-400; }
-  .badge-media     { @apply badge bg-blue-100    text-blue-700   border border-blue-400;   }
-  .badge-baja      { @apply badge bg-gray-100    text-gray-600   border border-gray-300;   }
+  .badge-critica   { @apply badge bg-red-100     text-red-700    ring-1 ring-red-400;    }
+  .badge-alta      { @apply badge bg-orange-100  text-orange-700 ring-1 ring-orange-400; }
+  .badge-media     { @apply badge bg-blue-100    text-blue-700   ring-1 ring-blue-400;   }
+  .badge-baja      { @apply badge bg-gray-100    text-gray-600   ring-1 ring-gray-300;   }
   .badge-on        { @apply badge bg-greenhouse-100 text-greenhouse-800; }
   .badge-off       { @apply badge bg-gray-100    text-gray-600;        }
   .badge-active    { @apply badge bg-greenhouse-100 text-greenhouse-800; }
