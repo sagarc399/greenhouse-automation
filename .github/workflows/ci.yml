@@ -4,6 +4,9 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+permissions:
+  issues: write
+  contents: read
 jobs:
   backend:
     name: Backend — Test & Build
