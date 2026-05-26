@@ -61,7 +61,7 @@ class GreenhouseServiceTest {
         List<GreenhouseDto> result = service.findAll();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).name()).isEqualTo("FAIL_TEST");
+        assertThat(result.get(0).name()).isEqualTo("Test Greenhouse");
     }
 
     /**
