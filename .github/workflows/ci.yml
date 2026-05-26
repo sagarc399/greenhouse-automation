@@ -56,19 +56,18 @@ jobs:
           TAIGA_USERNAME: ${{ secrets.TAIGA_USERNAME }}
           TAIGA_PASSWORD: ${{ secrets.TAIGA_PASSWORD }}
         run: |
-          # Authenticate and get token
-          TOKEN=$(curl -s -X POST https://api.taiga.io/api/v1/auth \
+          RESPONSE=$(curl -s -X POST https://api.taiga.io/api/v1/auth \
             -H "Content-Type: application/json" \
-            -d "{\"type\": \"normal\", \"username\": \"$TAIGA_USERNAME\", \"password\": \"$TAIGA_PASSWORD\"}" \
-            | python3 -c "import sys, json; print(json.load(sys.stdin)['auth_token'])")
+            -d "{\"type\": \"normal\", \"username\": \"${TAIGA_USERNAME}\", \"password\": \"${TAIGA_PASSWORD}\"}")
+          echo "Auth response: $RESPONSE"
+          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['auth_token'])")
+          echo "Token obtained: ${TOKEN:0:10}..."
 
-          # Collect failed test names
           FAILED_TESTS=$(find backend/target/surefire-reports -name "*.xml" \
             | xargs grep -l "failure\|error" \
             | xargs -I{} basename {} .xml \
             | tr '\n' ', ' || echo "Unknown test")
 
-          # Create issue in Taiga
           curl -s -X POST https://api.taiga.io/api/v1/issues \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $TOKEN" \
@@ -129,10 +128,12 @@ jobs:
           TAIGA_USERNAME: ${{ secrets.TAIGA_USERNAME }}
           TAIGA_PASSWORD: ${{ secrets.TAIGA_PASSWORD }}
         run: |
-          TOKEN=$(curl -s -X POST https://api.taiga.io/api/v1/auth \
+          RESPONSE=$(curl -s -X POST https://api.taiga.io/api/v1/auth \
             -H "Content-Type: application/json" \
-            -d "{\"type\": \"normal\", \"username\": \"$TAIGA_USERNAME\", \"password\": \"$TAIGA_PASSWORD\"}" \
-            | python3 -c "import sys, json; print(json.load(sys.stdin)['auth_token'])")
+            -d "{\"type\": \"normal\", \"username\": \"${TAIGA_USERNAME}\", \"password\": \"${TAIGA_PASSWORD}\"}")
+          echo "Auth response: $RESPONSE"
+          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['auth_token'])")
+          echo "Token obtained: ${TOKEN:0:10}..."
 
           curl -s -X POST https://api.taiga.io/api/v1/issues \
             -H "Content-Type: application/json" \
