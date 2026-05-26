@@ -50,35 +50,22 @@ jobs:
             done
           done
 
-      - name: Create Taiga issue on test failure
+      - name: Create GitHub issue on test failure
         if: failure()
-        env:
-          TAIGA_USERNAME: ${{ secrets.TAIGA_USERNAME }}
-          TAIGA_PASSWORD: ${{ secrets.TAIGA_PASSWORD }}
-        run: |
-          RESPONSE=$(curl -s -X POST https://api.taiga.io/api/v1/auth \
-            -H "Content-Type: application/json" \
-            -d "{\"type\": \"normal\", \"username\": \"${TAIGA_USERNAME}\", \"password\": \"${TAIGA_PASSWORD}\"}")
-          echo "Auth response: $RESPONSE"
-          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['auth_token'])")
-          echo "Token obtained: ${TOKEN:0:10}..."
-
-          FAILED_TESTS=$(find backend/target/surefire-reports -name "*.xml" \
-            | xargs grep -l "failure\|error" \
-            | xargs -I{} basename {} .xml \
-            | tr '\n' ', ' || echo "Unknown test")
-
-          curl -s -X POST https://api.taiga.io/api/v1/issues \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $TOKEN" \
-            -d "{
-              \"project\": 1792582,
-              \"subject\": \"CI failure on commit ${{ github.sha }} — $FAILED_TESTS\",
-              \"description\": \"**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.actor }}\n**Failed tests:** $FAILED_TESTS\n**Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
-              \"type\": 1,
-              \"severity\": 3,
-              \"priority\": 3
-            }"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const failedTests = require('fs').readdirSync('backend/target/surefire-reports')
+              .filter(f => f.endsWith('.xml'))
+              .map(f => f.replace('.xml', ''))
+              .join(', ');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 CI Failure — ${context.sha.substring(0, 7)} — Backend Tests`,
+              body: `## Automated Test Failure Report\n\n**Branch:** \`${context.ref}\`\n**Commit:** \`${context.sha}\`\n**Triggered by:** @${context.actor}\n**Failed tests:** ${failedTests}\n**CI Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\n> This issue was created automatically by the CI pipeline.`,
+              labels: ['bug', 'ci-failure']
+            });
 
       - name: Build JAR
         working-directory: backend
@@ -122,30 +109,18 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Create Taiga issue on frontend build failure
+      - name: Create GitHub issue on frontend build failure
         if: failure()
-        env:
-          TAIGA_USERNAME: ${{ secrets.TAIGA_USERNAME }}
-          TAIGA_PASSWORD: ${{ secrets.TAIGA_PASSWORD }}
-        run: |
-          RESPONSE=$(curl -s -X POST https://api.taiga.io/api/v1/auth \
-            -H "Content-Type: application/json" \
-            -d "{\"type\": \"normal\", \"username\": \"${TAIGA_USERNAME}\", \"password\": \"${TAIGA_PASSWORD}\"}")
-          echo "Auth response: $RESPONSE"
-          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['auth_token'])")
-          echo "Token obtained: ${TOKEN:0:10}..."
-
-          curl -s -X POST https://api.taiga.io/api/v1/issues \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $TOKEN" \
-            -d "{
-              \"project\": 1792582,
-              \"subject\": \"Frontend build failure on commit ${{ github.sha }}\",
-              \"description\": \"**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.actor }}\n**Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
-              \"type\": 1,
-              \"severity\": 3,
-              \"priority\": 3
-            }"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 CI Failure — ${context.sha.substring(0, 7)} — Frontend Build`,
+              body: `## Automated Frontend Build Failure Report\n\n**Branch:** \`${context.ref}\`\n**Commit:** \`${context.sha}\`\n**Triggered by:** @${context.actor}\n**CI Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\n> This issue was created automatically by the CI pipeline.`,
+              labels: ['bug', 'ci-failure']
+            });
 
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
