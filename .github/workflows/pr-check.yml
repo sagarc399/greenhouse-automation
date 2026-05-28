@@ -1,0 +1,53 @@
+name: PR - Validacion
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  validar-trazabilidad:
+    name: Validar referencia Taiga y criterios
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar contenido del PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || "";
+            const branch = context.payload.pull_request.head.ref || "";
+
+            const tieneTaiga =
+              /TAIGA-\d+/i.test(body) ||
+              /US-\d+/i.test(body) ||
+              /#\d+/.test(body) ||
+              /TAIGA-\d+/i.test(branch) ||
+              /US-\d+/i.test(branch);
+
+            const tieneCriterios =
+              /criterios de aceptaci[oó]n/i.test(body) &&
+              /-\s+\[[ xX]\]/.test(body);
+
+            if (!tieneTaiga || !tieneCriterios) {
+              core.setFailed(
+                "El PR debe incluir referencia a Taiga (TAIGA-123, US-123 o #123) y criterios de aceptacion con checklist."
+              );
+            }
+
+  comentar-pr:
+    name: Comentar instrucciones
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publicar comentario en el PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "✅ CI iniciado. Verifica que el PR tenga referencia Taiga, criterios de aceptación con checklist, y que los checks de backend y frontend pasen antes de aprobar el merge."
+            });

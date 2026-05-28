@@ -1,0 +1,76 @@
+name: Automatizacion - Issue por fallo CI
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issue:
+    name: Crear issue automatico por fallo
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Crear issue en GitHub
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const title = `[AUTO-CI] Corregir fallo en ${run.name} — run #${run.run_number}`;
+
+            const existing = await github.rest.issues.listForRepo({
+              owner, repo, state: "open", labels: "auto-ci"
+            });
+            const duplicate = existing.data.find(i => i.title === title);
+            if (duplicate) {
+              core.info(`Issue ya existe: ${duplicate.html_url}`);
+              return;
+            }
+
+            for (const label of [
+              { name: "auto-ci",    color: "0E8A16", description: "Creado automaticamente por GitHub Actions" },
+              { name: "bug",        color: "D73A4A", description: "Error o regresion detectada" },
+              { name: "ci-failure", color: "E4E669", description: "Fallo detectado en el pipeline de CI" }
+            ]) {
+              try {
+                await github.rest.issues.createLabel({ owner, repo, ...label });
+              } catch (e) {
+                if (e.status !== 422) throw e;
+              }
+            }
+
+            const body = [
+              "## Historia automatica",
+              "",
+              "Como equipo de desarrollo,",
+              "quiero corregir el fallo detectado por GitHub Actions,",
+              "para mantener el sistema estable y entregable.",
+              "",
+              "## Contexto",
+              "",
+              `- **Workflow:** ${run.name}`,
+              `- **Ejecución:** #${run.run_number}`,
+              `- **Rama:** ${run.head_branch}`,
+              `- **Commit:** \`${run.head_sha.substring(0, 7)}\``,
+              `- **URL del run:** ${run.html_url}`,
+              "",
+              "## Criterios de aceptación",
+              "",
+              "- [ ] Se identifica la causa del fallo.",
+              "- [ ] Se corrige el código o configuración afectada.",
+              "- [ ] El workflow vuelve a ejecutarse correctamente.",
+              "- [ ] Se deja evidencia en GitHub Actions.",
+              "",
+              "> Este issue fue creado automáticamente por el pipeline de CI."
+            ].join("\n");
+
+            await github.rest.issues.create({
+              owner, repo, title, body,
+              labels: ["auto-ci", "bug", "ci-failure"]
+            });
